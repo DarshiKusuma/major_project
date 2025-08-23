@@ -16,9 +16,9 @@ export default function AnimatedBackground() {
       constructor() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 2 + 1;
-        this.speedX = Math.random() * 0.5 - 0.25;
-        this.speedY = Math.random() * 0.5 - 0.25;
+        this.size = Math.random() * 3 + 1;
+        this.speedX = Math.random() * 1 - 0.5;
+        this.speedY = Math.random() * 1 - 0.5;
       }
       update() {
         this.x += this.speedX;
@@ -29,7 +29,7 @@ export default function AnimatedBackground() {
         if (this.y < 0) this.y = canvas.height;
       }
       draw() {
-        ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
@@ -38,15 +38,14 @@ export default function AnimatedBackground() {
 
     function init() {
       particlesArray = [];
-      const numParticles = (canvas.width * canvas.height) / 10000;
+      const numParticles = (canvas.width * canvas.height) / 8000;
       for (let i = 0; i < numParticles; i++) {
         particlesArray.push(new Particle());
       }
     }
 
     function animate() {
-      ctx.fillStyle = "rgba(20, 20, 25, 1)"; // fixed dark background
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       particlesArray.forEach(p => {
         p.update();
         p.draw();
