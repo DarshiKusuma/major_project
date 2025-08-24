@@ -17,6 +17,11 @@ client/.eslintcache
 # Python (Flask backend)
 # ========================
 server/__pycache__/
+server/app/__pycache__/
+server/app/controllers/__pycache__/
+server/app/models/__pycache__/
+server/app/routes/__pycache__/
+server/app/utils/__pycache__/
 server/*.pyc
 server/*.pyo
 server/*.pyd
