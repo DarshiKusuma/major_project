@@ -4,6 +4,9 @@ import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
+import LandingPage from "./pages/LandingPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -14,6 +17,8 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/register" element={<Register />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/verify/:token" element={<VerifyEmail />} />
+        <Route path="/landing" element={<ProtectedRoute><LandingPage /></ProtectedRoute>}/>
       </Routes>
     </Router>
   );

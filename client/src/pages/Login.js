@@ -14,6 +14,7 @@ export default function Login() {
     setError("");
     try {
       const response = await axios.post("/auth/login", { email, password });
+      alert(response.data.message);
       // Save token to localStorage
       localStorage.setItem("token", response.data.token);
       navigate("/landing");

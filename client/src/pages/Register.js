@@ -12,7 +12,14 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [emailValid, setEmailValid] = useState(true);
   const navigate = useNavigate();
+
+  // Email validation function
+  const validateEmail = (value) => {
+    // Simple email regex
+    return /^[\w-.]+@[\w-]+\.[a-zA-Z]{2,}$/.test(value);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,6 +27,10 @@ export default function Register() {
     setSuccess("");
 
     // Basic front-end validation
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address!");
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords do not match!");
       return;
@@ -29,10 +40,12 @@ export default function Register() {
       const response = await axios.post("/auth/register", {
         name, email, gender, password
       });
-      setSuccess(response.data.message || "Registered successfully!");
+      setSuccess(response.data.message || "Registered successfully! \n Please Check Your Mail To Login");
+      setError("");
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
+      const errorMsg = err.response?.data?.message || err.response?.data?.message || "Registration failed";
+      setError(errorMsg); 
     }
   };
 
@@ -60,10 +73,17 @@ export default function Register() {
             type="email"
             placeholder="Email ID"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setEmailValid(validateEmail(e.target.value) || e.target.value === "");
+            }}
             required
             className="px-4 py-3 rounded-xl bg-gray-700 placeholder-gray-300 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
+          {/* Live email validation message */}
+          {!emailValid && email !== "" && (
+            <span className="text-red-400 text-xs ml-2">Invalid email format</span>
+          )}
 
           <select
             value={gender}

@@ -1,0 +1,47 @@
+# ========================
+# Node (React frontend)
+# ========================
+client/node_modules/
+client/build/
+client/.env
+
+# React editor settings
+client/.pnp*
+client/.pnp.js
+client/yarn-error.log
+client/package-lock.json
+client/.parcel-cache
+client/.eslintcache
+
+# ========================
+# Python (Flask backend)
+# ========================
+server/__pycache__/
+server/*.pyc
+server/*.pyo
+server/*.pyd
+server/.Python
+server/env/
+server/venv/
+server/.env
+
+# Flask instance folder (if used)
+server/instance/
+
+# ========================
+# System / IDE files
+# ========================
+*.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*.log
+
+# ========================
+# General
+# ========================
+.env
+*.bak
+*.tmp
