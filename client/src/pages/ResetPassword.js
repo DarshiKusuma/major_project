@@ -10,18 +10,18 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-
     if (password !== confirmPassword) {
       setError("Passwords do not match!");
       return;
     }
-
+    setLoading(true);
     try {
       const response = await axios.post(`/auth/reset-password/${token}`, {
         password,
@@ -30,6 +30,8 @@ export default function ResetPassword() {
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       setError(err.response?.data?.message || "Reset failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -67,9 +69,20 @@ export default function ResetPassword() {
 
           <button
             type="submit"
-            className="px-4 py-3 mt-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 transition-all duration-300 font-semibold"
+            className={`px-4 py-3 mt-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 transition-all duration-300 font-semibold flex items-center justify-center ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            disabled={loading}
           >
-            Reset Password
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                Changing Password...
+              </span>
+            ) : (
+              "Reset Password"
+            )}
           </button>
         </form>
 

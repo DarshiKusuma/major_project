@@ -1,10 +1,10 @@
-from flask import request, jsonify, current_app
+from flask import request, jsonify, current_app, url_for
 from app.models.user_model import users_collection, UserSchema
 from app.utils.password_utils import hash_password, check_password
-from app.utils.jwt_utils import generate_token, decode_token
+from app.utils.jwt_utils import generate_login_token, generate_short_token, decode_token
 from flask_mail import Message
 from app import mail
-import uuid
+import datetime, uuid
 
 #Create Schema Instance
 user_schema = UserSchema()
@@ -29,7 +29,7 @@ def register():
     data["user_id"] = str(uuid.uuid4())  # Generate a unique user ID
     
     # Generate verification token
-    verification_token = generate_token(data["user_id"])
+    verification_token = generate_short_token(data["user_id"], "verify")
     data["isVerified"] = False
     data["verification_token"] = verification_token
     
@@ -82,7 +82,7 @@ def resend_verification():
         return jsonify({"message": "Email already verified"}), 400
 
     # Only generate a new token, do NOT decode or validate any token here
-    new_token = generate_token(user["user_id"])
+    new_token = generate_short_token(user["user_id"], "verify")
     users_collection.update_one(
         {"email": email},
         {"$set": {"verification_token": new_token}}
@@ -116,7 +116,7 @@ def login():
         return jsonify({"message": "Invalid email or password"}), 401
 
     # Generate JWT token
-    token = generate_token(user["user_id"])
+    token = generate_login_token(user["user_id"])
 
     return jsonify({
         "message": "Login successful",
@@ -128,3 +128,71 @@ def login():
         }
     }), 200
 
+def forgot_password():
+    data = request.json
+    email = data.get("email")
+
+    if not email:
+        return jsonify({"message": "Email is required"}), 400
+
+    user = users_collection.find_one({"email": email})
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    # Generate reset token (10 mins valid)
+    reset_token = generate_short_token(user["user_id"], "reset")
+
+    # Save reset token in DB (optional: for tracking or single-use enforcement)
+    users_collection.update_one(
+        {"email": email},
+        {"$set": {"reset_token": reset_token}}
+    )
+
+    # Reset Link
+    reset_link = f"{current_app.config['FRONTEND_URL']}/reset/{reset_token}"
+
+    # Send Mail
+    msg = Message(
+        subject="Password Reset Request - Smart Health Predictor",
+        recipients=[email],
+        body=(
+            f"Hi {user['name']},\n\n"
+            f"You requested to reset your password.\n"
+            f"Please click the link below to reset your password:\n{reset_link}\n\n"
+            "This link is valid for 10 minutes.\n\n"
+            "If you did not request this, please ignore this email."
+        )
+    )
+    mail.send(msg)
+
+    return jsonify({"message": "Password reset link sent to your email"}), 200
+
+
+def reset_password(token):
+    data = request.json
+    password = data.get("password")
+
+    if not password:
+        return jsonify({"message": "Password is required"}), 400
+
+    decoded = decode_token(token)
+    if not decoded or decoded.get("type") != "reset":
+        return jsonify({"message": "Invalid or expired token"}), 400
+
+    user_id = decoded.get("user_id")
+    user = users_collection.find_one({"user_id": user_id})
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    # (Optional) Verify that token matches the one in DB
+    if user.get("reset_token") != token:
+        return jsonify({"message": "This reset link has already been used"}), 400
+
+    # Update password
+    hashed_pwd = hash_password(password)
+    users_collection.update_one(
+        {"user_id": user_id},
+        {"$set": {"password": hashed_pwd, "reset_token": ""}}
+    )
+
+    return jsonify({"message": "Password reset successful"}), 200
