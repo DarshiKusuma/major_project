@@ -7,6 +7,7 @@ import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import LandingPage from "./pages/LandingPage";
 import HealthAdvisor from "./pages/HealthAdvisor";
+import StressDetection from "./pages/StressDetection";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
         <Route path="/verify/:token" element={<VerifyEmail />} />
         <Route path="/landing" element={<ProtectedRoute><LandingPage /></ProtectedRoute>}/>
         <Route path="/health-advisor" element={<ProtectedRoute><HealthAdvisor /></ProtectedRoute>}/>
+        <Route path="/live-stress" element={<ProtectedRoute><StressDetection /></ProtectedRoute>}/>
       </Routes>
     </Router>
   );

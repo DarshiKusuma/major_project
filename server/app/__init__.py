@@ -34,5 +34,8 @@ def create_app():
     
     from app.routes.user_routes import user_bp
     app.register_blueprint(user_bp, url_prefix="/user")
+    
+    from app.routes.stress_routes import stress_bp
+    app.register_blueprint(stress_bp, url_prefix="/stress")
 
     return app
