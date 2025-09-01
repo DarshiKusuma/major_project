@@ -10,6 +10,7 @@ class UserSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=2))
     email = fields.Email(required=True)
     gender = fields.Str(required=True, validate=validate.OneOf(["Male", "Female", "Other"]))
+    age = fields.Int(required=True, validate=validate.Range(min=0))
     password = fields.Str(required=True, validate=validate.Length(min=6))
     isVerified = fields.Bool(load_default=False)
     verification_token = fields.Str(dump_only=True)

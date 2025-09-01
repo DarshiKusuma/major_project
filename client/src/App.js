@@ -6,6 +6,7 @@ import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import LandingPage from "./pages/LandingPage";
+import HealthAdvisor from "./pages/HealthAdvisor";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Route path="/reset/:token" element={<ResetPassword />} />
         <Route path="/verify/:token" element={<VerifyEmail />} />
         <Route path="/landing" element={<ProtectedRoute><LandingPage /></ProtectedRoute>}/>
+        <Route path="/health-advisor" element={<ProtectedRoute><HealthAdvisor /></ProtectedRoute>}/>
       </Routes>
     </Router>
   );

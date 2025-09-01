@@ -14,6 +14,7 @@ def register():
     name = data.get("name")
     email = data.get("email")
     gender = data.get("gender")
+    age = data.get("age")
     password = data.get("password")
 
     # Validate

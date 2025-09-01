@@ -8,6 +8,7 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState("");
+  const [age, setAge] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -38,7 +39,7 @@ export default function Register() {
 
     try {
       const response = await axios.post("/auth/register", {
-        name, email, gender, password
+        name, email, gender, age, password
       });
       setSuccess(response.data.message || "Registered successfully! \n Please Check Your Mail To Login");
       setError("");
@@ -96,6 +97,15 @@ export default function Register() {
             <option value="Female">Female</option>
             <option value="Other">Other</option>
           </select>
+
+          <input
+            type="number"
+            placeholder="Age"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+            required
+            className="px-4 py-3 rounded-xl bg-gray-700 placeholder-gray-300 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
 
           <input
             type="password"
