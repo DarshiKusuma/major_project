@@ -1,11 +1,21 @@
-import cv2
-from PIL import Image
-import numpy as np
-from transformers import pipeline
+# app/controllers/stress_controller.py
 from flask import request, jsonify
+from PIL import Image
+import io
+import base64
 
-# Load Hugging Face model once
-pipe = pipeline("image-classification", model="HardlyHumans/Facial-expression-detection")
+# Lazy-load the Hugging Face pipeline
+pipe = None
+
+def get_pipe():
+    global pipe
+    if pipe is None:
+        from transformers import pipeline
+        pipe = pipeline(
+            "image-classification",
+            model="HardlyHumans/Facial-expression-detection"
+        )
+    return pipe
 
 # --- Emotion → Stress Mapping ---
 def map_emotion_to_stress(emotion: str) -> str:
@@ -21,16 +31,20 @@ def map_emotion_to_stress(emotion: str) -> str:
     }
     return stress_map.get(emotion.lower(), "Unknown")
 
-
-# --- Controller: Image Upload Stress Detection ---
+# --- Controller: Detect Stress from Uploaded Image ---
 def stress_from_image():
     if "image" not in request.files:
         return jsonify({"error": "No image uploaded"}), 400
 
     file = request.files["image"]
-    image = Image.open(file).convert("RGB")
+    try:
+        image = Image.open(file).convert("RGB")
+    except Exception as e:
+        return jsonify({"error": f"Invalid image file: {str(e)}"}), 400
 
-    result = pipe(image)
+    # Run inference
+    pipe_instance = get_pipe()
+    result = pipe_instance(image)
     top_emotion = result[0]["label"]
     stress_level = map_emotion_to_stress(top_emotion)
 
@@ -39,38 +53,35 @@ def stress_from_image():
         "stress_level": stress_level
     })
 
-
-# --- Controller: Live Webcam Detection ---
+# --- Controller: Detect Stress from Live Frame (Base64 from React) ---
 def stress_from_live():
-    cap = cv2.VideoCapture(0)
-    if not cap.isOpened():
-        return jsonify({"error": "Unable to access webcam"}), 500
+    """
+    Receives a frame from frontend in base64 and returns detected emotion & stress level.
+    Expected JSON payload: { "frame": "data:image/jpeg;base64,..." }
+    """
+    data = request.json
+    if not data or "frame" not in data:
+        return jsonify({"error": "No frame data provided"}), 400
 
-    print("\n[VIDEO MODE] Press 'q' in console window to quit.")
+    frame_data = data["frame"]
 
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+    # Remove base64 header if present
+    if frame_data.startswith("data:image"):
+        frame_data = frame_data.split(",")[1]
 
-        small_frame = cv2.resize(frame, (256, 256))
-        rgb_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
-        pil_image = Image.fromarray(rgb_frame)
+    try:
+        image_bytes = base64.b64decode(frame_data)
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    except Exception as e:
+        return jsonify({"error": f"Invalid image data: {str(e)}"}), 400
 
-        result = pipe(pil_image)
-        top_emotion = result[0]["label"]
-        stress_level = map_emotion_to_stress(top_emotion)
+    # Run inference
+    pipe_instance = get_pipe()
+    result = pipe_instance(image)
+    top_emotion = result[0]["label"]
+    stress_level = map_emotion_to_stress(top_emotion)
 
-        display_text = f"{top_emotion} ({stress_level})"
-        cv2.putText(frame, display_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
-                    1, (0, 255, 0), 2, cv2.LINE_AA)
-
-        cv2.imshow('Live Emotion & Stress Detection', frame)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-    return jsonify({"message": "Live detection finished"})
+    return jsonify({
+        "detected_emotion": top_emotion,
+        "stress_level": stress_level
+    })
