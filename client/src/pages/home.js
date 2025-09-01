@@ -35,7 +35,7 @@ export default function Home() {
 
       {/* Footer */}
       <div className="absolute bottom-5 text-gray-500 text-sm z-10">
-        © 2025 Developed By Parvathpur Model కుసుమ దర్శి All rights reserved. 
+        © 2025 Developed By Kusuma Darshi All rights reserved. 
       </div>
     </div>
   );
